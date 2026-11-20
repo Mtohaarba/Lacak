@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080b16">
+  <meta name="description" content="EKHM - Electronic Keep & Home Monitoring">
+  <title>EKHM | Cyber Monitor</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div class="scanlines" aria-hidden="true"></div>
+  <header class="topbar">
+    <a class="brand" href="#"><span class="brand-mark">E</span><span>EKHM<span class="brand-dot">.</span><small>REMOTE MONITORING</small></span></a>
+    <div class="top-status"><span class="pulse"></span><span id="connectionLabel">BELUM TERHUBUNG</span></div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div class="eyebrow">ELECTRONIC KEEP & HOME MONITORING</div>
+      <h1>CONTROL YOUR<br><span>CONNECTED DEVICES.</span></h1>
+      <p>Hubungkan perangkat milikmu dan pantau status serta lokasi dengan izin masing-masing pengguna.</p>
+    </section>
+
+    <section class="notice" id="setupNotice">
+      <div class="notice-icon">!</div>
+      <div><strong>Konfigurasi Firebase diperlukan</strong><p>Isi konfigurasi Firebase di <code>app.js</code> agar dua HP bisa saling terhubung melalui internet.</p></div>
+    </section>
+
+    <section class="panel auth-panel">
+      <div class="section-heading"><span class="section-index">01</span><div><h2>IDENTITAS PERANGKAT</h2><p>Daftarkan perangkat ini ke EKHM</p></div></div>
+      <label for="deviceName">Nama perangkat</label>
+      <input id="deviceName" maxlength="24" placeholder="Contoh: HP Arba" autocomplete="off">
+      <div class="button-row">
+        <button class="btn btn-primary" id="connectBtn">HUBUNGKAN</button>
+        <button class="btn btn-ghost" id="disconnectBtn" disabled>PUTUSKAN</button>
+      </div>
+      <div class="small-status" id="authStatus">Belum masuk.</div>
+    </section>
+
+    <section class="panel pair-panel">
+      <div class="section-heading"><span class="section-index">02</span><div><h2>DEVICE PAIRING</h2><p>Buat ruang privat atau gabung dari HP kedua</p></div></div>
+      <div class="pair-grid">
+        <div class="pair-card">
+          <span class="mini-label">PERANGKAT UTAMA</span>
+          <h3>Buat kode</h3>
+          <p>Buat ruang pairing baru di HP ini.</p>
+          <button class="btn btn-primary btn-full" id="createRoomBtn" disabled>BUAT RUANG</button>
+          <div class="room-code" id="roomCode">--------</div>
+          <button class="btn btn-copy btn-full" id="copyCodeBtn" disabled>SALIN KODE</button>
+        </div>
+        <div class="pair-card">
+          <span class="mini-label">PERANGKAT KEDUA</span>
+          <h3>Gabung ruang</h3>
+          <p>Masukkan kode dari HP utama.</p>
+          <input id="joinCode" maxlength="12" placeholder="MASUKKAN KODE" autocomplete="off" autocapitalize="characters">
+          <button class="btn btn-secondary btn-full" id="joinRoomBtn" disabled>GABUNG</button>
+        </div>
+      </div>
+      <div class="small-status" id="pairStatus">Hubungkan perangkat terlebih dahulu.</div>
+    </section>
+
+    <section class="panel devices-panel">
+      <div class="section-heading"><span class="section-index">03</span><div><h2>CONNECTED DEVICES</h2><p>Perangkat yang berada di ruang pairing ini</p></div></div>
+      <div id="deviceList" class="device-list">
+        <div class="empty-state"><span>⌁</span><p>Belum ada perangkat terhubung.</p></div>
+      </div>
+    </section>
+
+    <section class="panel location-panel">
+      <div class="section-heading"><span class="section-index">04</span><div><h2>LOCATION SHARING</h2><p>Berbagi lokasi hanya saat diaktifkan oleh pemilik HP</p></div></div>
+      <div class="location-control">
+        <div><strong>Bagikan lokasi perangkat ini</strong><small id="locationState">Nonaktif • kirim tiap 30 detik saat aktif</small></div>
+        <label class="switch"><input type="checkbox" id="locationToggle" disabled><span class="slider"></span></label>
+      </div>
+      <div id="locationList" class="location-list"><p class="muted">Lokasi perangkat akan tampil di sini setelah dibagikan.</p></div>
+      <p class="privacy-note">Selama tombol aktif, lokasi dikirim saat posisi berubah dan diulang otomatis setiap 30 detik. Lokasi membutuhkan izin lokasi dari browser dan koneksi HTTPS. Matikan tombol untuk berhenti berbagi.</p>
+    </section>
+
+    <section class="panel capture-panel">
+      <div class="section-heading"><span class="section-index">05</span><div><h2>REMOTE CAPTURE & MEDIA</h2><p>Foto, video, dan audio jarak jauh — selalu butuh persetujuan di HP target</p></div></div>
+      <label for="targetDevice">Kirim perintah ke</label>
+      <select id="targetDevice" style="width:100%;padding:12px;border-radius:10px;border:1px solid rgba(128,128,128,.45);background:transparent;color:inherit;font-size:14px;outline:none;margin-top:2px">
+        <option value="">Hubungkan dan pairing dulu…</option>
+      </select>
+      <div class="button-row" style="flex-wrap:wrap">
+        <button class="btn btn-primary" id="photoBtn" disabled>📷 FOTO</button>
+        <button class="btn btn-secondary" id="videoBtn" disabled>🎬 VIDEO</button>
+        <button class="btn btn-secondary" id="audioBtn" disabled>🎙 AUDIO</button>
+        <button class="btn btn-ghost" id="ringBtn" disabled>🔔 BUNYIKAN</button>
+        <button class="btn btn-ghost" id="ringStopBtn" hidden>■ MATIKAN BUNYI</button>
+      </div>
+      <div class="small-status" id="captureStatus">Hubungkan dan pairing untuk pakai fitur remote.</div>
+      <div id="mediaList" class="location-list"><p class="muted">Belum ada foto/video/audio. Hasil remote capture akan tampil di sini.</p></div>
+    </section>
+
+    <section class="panel consent-panel">
+      <div class="section-heading"><span class="section-index">06</span><div><h2>IZIN DI HP INI</h2><p>Kontrol apa yang boleh diminta HP lain dari perangkat ini</p></div></div>
+      <div class="location-control">
+        <div><strong>Nada dering remote (auto, full volume)</strong><small id="ringState">Nonaktif</small></div>
+        <label class="switch"><input type="checkbox" id="ringToggle"><span class="slider"></span></label>
+      </div>
+      <p class="privacy-note">Foto, video, dan audio TIDAK PERNAH otomatis: setiap permintaan menampilkan dialog persetujuan di HP ini, dan bisa dibatalkan saat perekaman berjalan. Browser juga selalu menampilkan indikator kamera/mikrofon milik sistem. Nada dering hanya jalan kalau saklar di atas diaktifkan, dan bunyinya tidak bisa melewati volume/silent mode sistem HP.</p>
+    </section>
+
+    <section class="panel next-panel">
+      <div class="section-heading"><span class="section-index">07</span><div><h2>MODULE ROADMAP</h2><p>Fitur yang dikembangkan bertahap</p></div></div>
+      <div class="roadmap-item"><span class="roadmap-dot done"></span><div><strong>Pairing, GPS & Remote capture</strong><small>Lokasi tiap 30 detik + foto/video/audio dengan persetujuan</small></div><span class="tag tag-live">AKTIF</span></div>
+      <div class="roadmap-item"><span class="roadmap-dot done"></span><div><strong>Nada dering remote</strong><small>Opt-in di HP penerima, bunyi penuh sampai dimatikan</small></div><span class="tag tag-live">AKTIF</span></div>
+      <div class="roadmap-item"><span class="roadmap-dot"></span><div><strong>Live streaming WebRTC</strong><small>Video/audio realtime dua arah, pengembangan berikutnya</small></div><span class="tag">BERIKUTNYA</span></div>
+    </section>
+
+    <footer>EKHM <span>•</span> PRIVATE DEVICE CONNECTION <span>•</span> V0.2</footer>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
